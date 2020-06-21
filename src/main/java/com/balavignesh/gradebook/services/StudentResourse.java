@@ -42,9 +42,21 @@ public class StudentResourse {
         return addOrReplaceStudent(name,grade);
     }
     
+    @POST
+    @Path("{name}/grade")
+    public Response addEmptyStudent(@PathParam("name") String name){
+        return addOrReplaceStudent(name,"");
+    }
+    
+    @PUT
+    @Path("{name}/grade")
+    public Response modifyEmptyStudent(@PathParam("name") String name){
+        return addOrReplaceStudent(name,"");
+    }
+    
     private Response addOrReplaceStudent(String name,String grade){
         
-        if(grade==null || !validGrade(grade)){
+        if(grade==null || "".equalsIgnoreCase(grade) || !validGrade(grade)){
             throw new BadRequestException();
         }
         
