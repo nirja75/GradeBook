@@ -9,6 +9,7 @@ import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -44,7 +45,7 @@ public class StudentResourse {
     private Response addOrReplaceStudent(String name,String grade){
         
         if(grade==null || !validGrade(grade)){
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            throw new BadRequestException();
         }
         
         Student studentSaved = filterStudent(studentList,name);
