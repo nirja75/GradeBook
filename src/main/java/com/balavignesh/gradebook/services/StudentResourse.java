@@ -5,6 +5,7 @@
  */
 package com.balavignesh.gradebook.services;
 
+import com.balavignesh.gradebook.connection.SendRequest;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.util.ArrayList;
@@ -29,6 +30,22 @@ import javax.ws.rs.core.Response;
 public class StudentResourse {
     
     private StudentList studentList = new StudentList();
+    
+   
+    @GET
+    @Path("/show")
+    public String showStudent() throws Exception
+    {
+        try{
+        SendRequest s = new SendRequest();
+         String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/student", "GET");
+        System.out.println(str);
+        }catch(Exception e){
+            return e.getMessage();
+        }
+        return ("Hi");
+        
+    }
     
     @POST
     @Path("{name}/grade/{grade}")
