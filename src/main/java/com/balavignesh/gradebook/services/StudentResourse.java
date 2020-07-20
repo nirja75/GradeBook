@@ -9,6 +9,7 @@ import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -29,6 +30,18 @@ import javax.ws.rs.core.Response;
 public class StudentResourse {
     
     private StudentList studentList = new StudentList();
+    
+     @GET
+        @Produces("application/XML")
+    public String getGradebooks() {
+          
+        
+      
+        return null;
+          
+        
+       
+    }
     
     @POST
     @Path("{name}/grade/{grade}")
