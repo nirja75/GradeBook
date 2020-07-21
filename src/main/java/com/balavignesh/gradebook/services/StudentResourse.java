@@ -5,11 +5,15 @@
  */
 package com.balavignesh.gradebook.services;
 
+import com.balavignesh.DB.GradeBookDB;
 import com.balavignesh.gradebook.connection.SendRequest;
+import com.balavignesh.gradebook.domain.GradeBook;
+import com.balavignesh.gradebook.domain.GradeBookList;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,12 +30,12 @@ import javax.ws.rs.core.Response;
  *
  * @author BalaVignesh
  */
-@Path("/student")
+@Path("/")
 public class StudentResourse {
     
-    private StudentList studentList = new StudentList();
+    private GradeBookDB gradeBookDb = new GradeBookDB();
     
-   
+    
     @GET
     @Path("/show")
     public String showStudent() throws Exception
@@ -46,6 +50,68 @@ public class StudentResourse {
         return ("Hi");
         
     }
+    
+    @GET
+    @Path("/gradebook")
+    @Produces(MediaType.TEXT_XML+";charset=utf-8")
+    public GradeBookList getGradeBookList(){
+        return gradeBookDb.getGradeBookList();
+    }
+    
+    @POST
+    @Path("/gradebook/{name}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response createGradeBooks(@PathParam("name") String name){
+         if(name==null || "".equalsIgnoreCase(name)){
+            throw new BadRequestException();
+        }
+        GradeBook gradePresent = gradeBookDb.filterGradeBookByName(name);
+       if(gradePresent == null ){
+          long gradeId = gradeBookDb.createGradebook(name);
+          return Response.status(javax.ws.rs.core.Response.Status.CREATED).entity(gradeId).build();
+        }else{
+            throw new BadRequestException("the title already exists");
+        }
+    }
+    
+    
+    @POST
+    @Path("/gradebook/{id}/student/{name}/grade/{grade}")
+    public Response createStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
+        if(id == 0 || grade==null || "".equalsIgnoreCase(grade) || !gradeBookDb.validGrade(grade) ){
+            throw new BadRequestException();
+        }
+        GradeBook gradePresent = gradeBookDb.filterGradeBookById(id);
+       if(gradePresent != null ){
+          gradeBookDb.createStudent(id,name,grade);
+          return Response.ok().build();
+        }else{
+            throw new BadRequestException("Grade Not Present");
+        }
+    }
+    
+    
+    @GET
+    @Path("/gradebook/{id}/student")
+    @Produces("application/XML")
+    public StudentList getAllStudent(@PathParam("id")  long id){
+       return  gradeBookDb.getAllStudents(id);
+    }
+    
+   
+    
+    
+    
+    
+    
+    
+    /*
+    
+    
+    private StudentList studentList = new StudentList();
+    
+     
+    
     
     @POST
     @Path("{name}/grade/{grade}")
@@ -132,5 +198,5 @@ public class StudentResourse {
         ArrayList<String> grades = new ArrayList<String>(
                 Arrays.asList("A+","A-","B+","B-","C+","C-","D+","D-","A","B","C","D","E","F","I","W","Z"));
         return grades.stream().filter(gr->gr.equalsIgnoreCase(grade)).count()==1;
-    }
+    }*/
 }
