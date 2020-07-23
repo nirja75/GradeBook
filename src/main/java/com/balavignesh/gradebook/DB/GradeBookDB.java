@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.balavignesh.DB;
+package com.balavignesh.gradebook.DB;
 
 import com.balavignesh.gradebook.domain.GradeBook;
 import com.balavignesh.gradebook.domain.GradeBookList;
@@ -12,6 +12,7 @@ import com.balavignesh.gradebook.domain.StudentList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.core.Response;
@@ -38,6 +39,8 @@ public class GradeBookDB {
     }
      
      
+     
+     
     public GradeBook filterGradeBookByName(String name) {
         if(name == null || name.trim().length()==0 || gradeBookList.getGradebook()==null || gradeBookList.getGradebook().size()==0){
             return null;
@@ -54,7 +57,7 @@ public class GradeBookDB {
                 .findFirst().orElse(null);
     } 
     
-    private Student filterStudent(StudentList studentList, String name) {
+    public Student filterStudent(StudentList studentList, String name) {
         if(name == null || name.trim().length()==0 || studentList.getStudent()==null || studentList.getStudent().size()==0){
             return null;
         }
@@ -89,6 +92,10 @@ public class GradeBookDB {
 
     public StudentList getAllStudents(long id) {
         return gradeWithStudent.containsKey(id) ? gradeWithStudent.get(id):null;
+    }
+    
+    public Student getStudent(long id, String name) {
+        return gradeWithStudent.containsKey(id) ? filterStudent(gradeWithStudent.get(id),name):null;
     }
     
     public boolean validGrade(String grade) {
