@@ -11,13 +11,13 @@ import com.balavignesh.gradebook.domain.GradeBook;
 import com.balavignesh.gradebook.domain.GradeBookList;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Scanner;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -49,6 +49,17 @@ public class StudentResourse {
         }
         return ("Hi");
         
+    }
+    
+    
+    @GET
+    @Path("/serverdetails")
+    @Produces(MediaType.TEXT_PLAIN+";charset=utf-8")
+    public String getServerDetails() throws UnknownHostException, SocketException, IOException{
+        StringBuffer buffer = new StringBuffer();
+         buffer.append(" \n InetAddress.getLocalHost().getHostName "+InetAddress.getLocalHost().getHostName());
+         buffer.append(" \n my external ip:" + execReadToString("curl https://checkip.amazonaws.com"));
+        return buffer.toString();
     }
     
     @GET
@@ -131,6 +142,11 @@ public class StudentResourse {
    
     
     
+    public static String execReadToString(String execCommand) throws IOException {
+    try (Scanner s = new Scanner(Runtime.getRuntime().exec(execCommand).getInputStream()).useDelimiter("\\A")) {
+        return s.hasNext() ? s.next() : "";
+    }
+}
     
     
     
