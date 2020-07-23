@@ -91,6 +91,10 @@ public class GradeBookDB {
         return gradeWithStudent.containsKey(id) ? gradeWithStudent.get(id):null;
     }
     
+    public Student getStudent(long id, String name) {
+        return gradeWithStudent.containsKey(id) ? filterStudent(gradeWithStudent.get(id),name):null;
+    }
+    
     public boolean validGrade(String grade) {
         ArrayList<String> grades = new ArrayList<String>(
                 Arrays.asList("A+","A-","B+","B-","C+","C-","D+","D-","A","B","C","D","E","F","I","W","Z"));

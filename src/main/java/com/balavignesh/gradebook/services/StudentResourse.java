@@ -62,6 +62,17 @@ public class StudentResourse {
     @Path("/gradebook/{name}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response createGradeBooks(@PathParam("name") String name){
+         return createOrModifyGradeBooks(name);
+    }
+    
+    @PUT
+    @Path("/gradebook/{name}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response modifyGradeBooks(@PathParam("name") String name){
+         return createOrModifyGradeBooks(name);
+    }
+    
+    private Response createOrModifyGradeBooks(String name){
          if(name==null || "".equalsIgnoreCase(name)){
             throw new BadRequestException();
         }
@@ -75,9 +86,21 @@ public class StudentResourse {
     }
     
     
+    
     @POST
     @Path("/gradebook/{id}/student/{name}/grade/{grade}")
     public Response createStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
+          return createOrModifyStudent(id,name,grade);
+    }
+    
+    @PUT
+    @Path("/gradebook/{id}/student/{name}/grade/{grade}")
+    public Response modifyStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
+       return createOrModifyStudent(id,name,grade);
+    }
+    
+    
+    private Response createOrModifyStudent(long id,String name,String grade){
         if(id == 0 || grade==null || "".equalsIgnoreCase(grade) || !gradeBookDb.validGrade(grade) ){
             throw new BadRequestException();
         }
@@ -98,8 +121,14 @@ public class StudentResourse {
        return  gradeBookDb.getAllStudents(id);
     }
     
-   
+    @GET
+    @Path("/gradebook/{id}/student/{name}")
+    @Produces("application/XML")
+    public Student getAllStudent(@PathParam("id")  long id,@PathParam("name") String name){
+       return  gradeBookDb.getStudent(id,name);
+    }
     
+   
     
     
     
