@@ -17,6 +17,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -96,6 +97,20 @@ public class StudentResourse {
         }
     }
     
+        @DELETE
+    @Path("gradebook/{id}")
+    public Response deleteGradebookbyId(@PathParam("id") long id){
+        GradeBook IdPresent = gradeBookDb.filterGradeBookById(id);
+        if(IdPresent ==null){
+          throw new BadRequestException();  
+        }
+        else{
+            gradeBookDb.getGradeBookList().getGradebook().remove(IdPresent);
+            return Response.ok().build();
+        }
+        
+    }
+    
     
     
     @POST
@@ -108,6 +123,27 @@ public class StudentResourse {
     @Path("/gradebook/{id}/student/{name}/grade/{grade}")
     public Response modifyStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
        return createOrModifyStudent(id,name,grade);
+    }
+    
+
+    
+    @DELETE
+    @Path("gradebook/{id}/student/{name}")
+    public Response deleteStudent(@PathParam("id") long id,@PathParam("name") String name){
+         GradeBook IdPresent = gradeBookDb.filterGradeBookById(id);
+
+        StudentList studentList = gradeBookDb.getAllStudents(id);
+        Student namePresent = gradeBookDb.filterStudent(studentList,name);
+        if(IdPresent ==null || namePresent == null){
+            throw new BadRequestException();  
+        }
+        else{
+            studentList.getStudent().remove(namePresent);
+          return Response.ok().build();   
+        }
+        
+       
+        
     }
     
     
