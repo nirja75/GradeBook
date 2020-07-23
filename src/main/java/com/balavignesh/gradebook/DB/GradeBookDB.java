@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.balavignesh.DB;
+package com.balavignesh.gradebook.DB;
 
 import com.balavignesh.gradebook.domain.GradeBook;
 import com.balavignesh.gradebook.domain.GradeBookList;

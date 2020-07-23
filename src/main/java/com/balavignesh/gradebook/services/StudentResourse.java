@@ -5,7 +5,7 @@
  */
 package com.balavignesh.gradebook.services;
 
-import com.balavignesh.DB.GradeBookDB;
+import com.balavignesh.gradebook.DB.GradeBookDB;
 import com.balavignesh.gradebook.connection.SendRequest;
 import com.balavignesh.gradebook.domain.GradeBook;
 import com.balavignesh.gradebook.domain.GradeBookList;
