@@ -9,14 +9,16 @@ import com.balavignesh.gradebook.DB.GradeBookDB;
 import com.balavignesh.gradebook.connection.SendRequest;
 import com.balavignesh.gradebook.domain.GradeBook;
 import com.balavignesh.gradebook.domain.GradeBookList;
+import com.balavignesh.gradebook.domain.Server;
+import com.balavignesh.gradebook.domain.ServerList;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.InputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,17 +34,16 @@ import javax.ws.rs.core.Response;
  * @author BalaVignesh
  */
 @Path("/")
-public class StudentResourse {
+public class StudentResource {
     
     private GradeBookDB gradeBookDb = new GradeBookDB();
-    
     
     @GET
     @Path("/show")
     public String showStudent() throws Exception
     {
         try{
-        SendRequest s = new SendRequest();
+         SendRequest s = new SendRequest();
          String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/student", "GET");
         System.out.println(str);
         }catch(Exception e){
@@ -51,15 +52,14 @@ public class StudentResourse {
         return ("Hi");
         
     }
-    
-    
+   
     @GET
     @Path("/serverdetails")
     @Produces(MediaType.TEXT_PLAIN+";charset=utf-8")
     public String getServerDetails() throws UnknownHostException, SocketException, IOException{
         StringBuffer buffer = new StringBuffer();
-         buffer.append(" \n InetAddress.getLocalHost().getHostName "+InetAddress.getLocalHost().getHostName());
-         buffer.append(" \n my external ip:" + execReadToString("curl https://checkip.amazonaws.com"));
+         buffer.append(" \n getMyHostName:"+gradeBookDb.getMyHostName());
+         buffer.append(" \n my external ip:" + gradeBookDb.getMyIP());
         return buffer.toString();
     }
     
@@ -73,27 +73,55 @@ public class StudentResourse {
     @POST
     @Path("/gradebook/{name}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response createGradeBooks(@PathParam("name") String name){
+    public Response createGradeBooks(@PathParam("name") String name) throws IOException{
          return createOrModifyGradeBooks(name);
+    }
+    
+    @POST
+    @Path("/gradebook")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response createGradeBook(GradeBook gradeBook) throws IOException{
+         return copyGradeBook(gradeBook);
     }
     
     @PUT
     @Path("/gradebook/{name}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response modifyGradeBooks(@PathParam("name") String name){
+    public Response modifyGradeBooks(@PathParam("name") String name) throws IOException{
          return createOrModifyGradeBooks(name);
     }
     
-    private Response createOrModifyGradeBooks(String name){
+    private Response createOrModifyGradeBooks(String name) throws IOException{
          if(name==null || "".equalsIgnoreCase(name)){
             throw new BadRequestException();
         }
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(name);
        if(gradePresent == null ){
           long gradeId = gradeBookDb.createGradebook(name);
+          
+           GradeBook gradecreated = gradeBookDb.filterGradeBookByName(name);
+           if(gradePresent != null ){
+               gradeBookDb.pushToAllSecondaries(gradecreated);
+           }
+           
           return Response.status(javax.ws.rs.core.Response.Status.CREATED).entity(gradeId).build();
         }else{
             throw new BadRequestException("the title already exists");
+        }
+    }
+    
+    private Response copyGradeBook(GradeBook gradeBook) throws IOException{
+         if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
+            throw new BadRequestException();
+        }
+        GradeBook gradePresent = gradeBookDb.filterGradeBookByName(gradeBook.getGradeTitle());
+       if(gradePresent != null ){
+           throw new BadRequestException();   
+        }else{
+           gradeBookDb.createGradebook(gradeBook);
+           
+          return Response.status(javax.ws.rs.core.Response.Status.CREATED).build();
         }
     }
     
@@ -158,25 +186,71 @@ public class StudentResourse {
     
     @GET
     @Path("/gradebook/{id}/student")
-    @Produces("application/XML")
+    @Produces(MediaType.TEXT_XML+";charset=utf-8")
     public StudentList getAllStudent(@PathParam("id")  long id){
        return gradeBookDb.getAllStudents(id);
     }
     
     @GET
     @Path("/gradebook/{id}/student/{name}")
-    @Produces("application/XML")
+    @Produces(MediaType.TEXT_XML+";charset=utf-8")
     public Student getAllStudent(@PathParam("id")  long id,@PathParam("name") String name){
        return gradeBookDb.getStudent(id,name);
     }
-    
-    public static String execReadToString(String execCommand) throws IOException {
-    try (Scanner s = new Scanner(Runtime.getRuntime().exec(execCommand).getInputStream()).useDelimiter("\\A")) {
-        return s.hasNext() ? s.next() : "";
+
+    @GET
+    @Path("/server")
+    @Produces(MediaType.TEXT_XML+";charset=utf-8")
+    public ServerList getServerList(){
+        return gradeBookDb.getServerList();
     }
-}
     
+    @POST
+    @Path("/server/{name}/ip/{ip}/port/{port}/contextroot/{contextroot}")
+    public Response createServer(@PathParam("name") String name,@PathParam("ip") String ip,
+            @PathParam("port") String port,@PathParam("contextroot") String contextroot){
+         return createOrModifyServer(name,ip,port,contextroot);
+    }
     
+    @PUT
+    @Path("/server/{name}/ip/{ip}/port/{port}/contextroot/{contextroot}")
+    public Response modifyServer(@PathParam("name") String name,@PathParam("ip") String ip,
+            @PathParam("port") String port,@PathParam("contextroot") String contextroot){
+         return createOrModifyServer(name,ip,port,contextroot);
+    }
+    
+    private Response createOrModifyServer(String name,String ip,String port,String contextroot){
+         if(name==null || "".equalsIgnoreCase(name)){
+            throw new BadRequestException();
+        }
+        Server server = gradeBookDb.filterServerByName(name);
+        if(server == null ){
+            Server ipPresent = gradeBookDb.filterServerByIp(ip);
+            if(ipPresent!=null){
+               throw new BadRequestException();
+            }
+            gradeBookDb.createServer(name,ip,port,contextroot);
+        }else{
+            server.setName(name);
+            server.setIp(ip);
+            server.setPort(port);
+            server.setContextRoot(contextroot); 
+        }
+       return Response.status(javax.ws.rs.core.Response.Status.CREATED).build();
+    }
+    
+    @DELETE
+    @Path("/server/{name}")
+    public Response deleteServerByName(@PathParam("name") String name){
+        Server server = gradeBookDb.filterServerByName(name);
+        if(server ==null){
+          throw new BadRequestException();  
+        }
+        else{
+            gradeBookDb.getServerList().getServer().remove(server);
+            return Response.ok().build();
+        }  
+    }
     
     /*
     

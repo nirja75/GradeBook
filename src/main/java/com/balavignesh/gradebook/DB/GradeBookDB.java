@@ -5,16 +5,25 @@
  */
 package com.balavignesh.gradebook.DB;
 
+import com.balavignesh.gradebook.connection.SendRequest;
 import com.balavignesh.gradebook.domain.GradeBook;
 import com.balavignesh.gradebook.domain.GradeBookList;
+import com.balavignesh.gradebook.domain.Server;
+import com.balavignesh.gradebook.domain.ServerList;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
 /**
@@ -24,20 +33,50 @@ import javax.ws.rs.core.Response;
 public class GradeBookDB {
     
     private GradeBookList gradeBookList = new GradeBookList();
+    private ServerList serverList = new ServerList();
     
     private Map<Long, StudentList> gradeWithStudent= new HashMap<Long, StudentList>();
     private static AtomicInteger idCounter = new AtomicInteger();
     
-     public long createGradebook(String title){
+    public long createGradebook(String title) throws IOException{
         GradeBook gradeBook = new GradeBook();
         idCounter.incrementAndGet();
         gradeBook.setGradeId(idCounter.longValue());
         gradeBook.setGradeTitle(title);
-     
+        
+        Server server = filterServerByIp(getMyIP());
+        gradeBook.setPrimary(server);
+        
        gradeBookList.getGradebook().add(gradeBook);
        return idCounter.longValue();
     }
+    
+    public void createGradebook(GradeBook gradeBook) throws IOException{
+        gradeBookList.getGradebook().add(gradeBook);
+        idCounter.set((int)gradeBook.getGradeId());
+    }
      
+    public void pushToGradeSecondaries(GradeBook gradeBook) throws IOException{
+        if(gradeBook!=null && gradeBook.getSecondarys()!=null && gradeBook.getSecondarys().getServer()!=null
+                && gradeBook.getSecondarys().getServer().size()>0){
+            List<Server> servers = filterServerByNotIp(gradeBook.getSecondarys().getServer(),getMyIP());
+            
+            //TODO
+            
+            
+        }
+        
+    } 
+    
+    public void pushToAllSecondaries(GradeBook gradeBook) throws IOException{
+        if(gradeBook!=null && serverList.getServer().size()>1){
+            List<Server> servers = filterServerByNotIp(serverList.getServer(),getMyIP());
+            
+            //TODO
+                   
+        }
+        
+    }
      
      
      
@@ -64,9 +103,46 @@ public class GradeBookDB {
         return studentList.getStudent().stream().filter(student->name.equalsIgnoreCase(student.getName()))
                 .findFirst().orElse(null);
     }
+    
+     public Server filterServerByName(String name) {
+        if(name == null || name.trim().length()==0 || serverList.getServer()==null || serverList.getServer().size()==0){
+            return null;
+        }
+        return serverList.getServer().stream().filter(student->name.equalsIgnoreCase(student.getName()))
+                .findFirst().orElse(null);
+    } 
+     
+    public Server filterServerByIp(String ip) {
+        if(ip == null || ip.trim().length()==0 || serverList.getServer()==null || serverList.getServer().size()==0){
+            return null;
+        }
+        return serverList.getServer().stream().filter(student->ip.equalsIgnoreCase(student.getIp()))
+                .findFirst().orElse(null);
+    } 
+    
+    public List<Server> filterServerByNotIp(List<Server> list ,String ip) {
+        if(ip == null || ip.trim().length()==0 || list==null || list.size()==0){
+            return null;
+        }
+        return list.stream().filter(student-> !ip.equalsIgnoreCase(student.getIp()))
+                .collect(Collectors.toList()); 
+    } 
 
     public GradeBookList getGradeBookList() {
         return gradeBookList;
+    }
+    
+     public ServerList getServerList() {
+        return serverList;
+    }
+     
+    public void createServer(String name,String ip,String port,String contextroot){
+        Server server = new Server();
+        server.setName(name);
+        server.setIp(ip);
+        server.setPort(port);
+        server.setContextRoot(contextroot);    
+        serverList.getServer().add(server);
     }
 
     public void createStudent(long id, String name, String grade) {
@@ -103,6 +179,19 @@ public class GradeBookDB {
                 Arrays.asList("A+","A-","B+","B-","C+","C-","D+","D-","A","B","C","D","E","F","I","W","Z"));
         return grades.stream().filter(gr->gr.equalsIgnoreCase(grade)).count()==1;
     }
-     
+    
+    public String getMyHostName() throws UnknownHostException, SocketException, IOException{
+        return InetAddress.getLocalHost().getHostName();
+    }
+    
+    public String getMyIP() throws UnknownHostException, SocketException, IOException{
+        return execReadToString("curl https://checkip.amazonaws.com");
+    }
+    
+    public static String execReadToString(String execCommand) throws IOException {
+    try (Scanner s = new Scanner(Runtime.getRuntime().exec(execCommand).getInputStream()).useDelimiter("\\A")) {
+        return s.hasNext() ? s.next() : "";
+    }
+    }
     
 }

@@ -47,6 +47,10 @@ public class Server {
     protected String name;
     @XmlElement(required = true)
     protected String ip;
+    @XmlElement(required = true)
+    protected String port;
+    @XmlElement(required = true)
+    protected String contextRoot;
     
     /**
      * Gets the value of the ip property.
@@ -94,6 +98,52 @@ public class Server {
      */
     public void setName(String value) {
         this.name = value;
+    }
+    /**
+     * Gets the value of the port property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getPort() {
+        return port;
+    }
+
+    /**
+     * Sets the value of the port property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setPort(String value) {
+        this.port = value;
+    }
+    /**
+     * Gets the value of the contextRoot property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getContextRoot() {
+        return contextRoot;
+    }
+
+    /**
+     * Sets the value of the contextRoot property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setContextRoot(String value) {
+        this.contextRoot = value;
     }
 
 }

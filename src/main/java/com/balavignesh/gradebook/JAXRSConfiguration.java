@@ -1,6 +1,6 @@
 package com.balavignesh.gradebook;
 
-import com.balavignesh.gradebook.services.StudentResourse;
+import com.balavignesh.gradebook.services.StudentResource;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ws.rs.ApplicationPath;
@@ -16,7 +16,7 @@ public class JAXRSConfiguration extends Application {
    private Set<Class<?>> empty = new HashSet<Class<?>>();
 
    public JAXRSConfiguration() {
-      singletons.add(new StudentResourse());
+      singletons.add(new StudentResource());
    }
 
    @Override

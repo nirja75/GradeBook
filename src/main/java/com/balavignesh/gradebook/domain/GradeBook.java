@@ -26,6 +26,10 @@ public class GradeBook {
     protected String gradeTitle;
     @XmlElement(required = true)
     protected long gradeId;
+    @XmlElement(required = true)
+    protected Server primary;
+    @XmlElement(required = false)
+    protected ServerList secondarys;
 
     public String getGradeTitle() {
         return gradeTitle;
@@ -41,6 +45,22 @@ public class GradeBook {
 
     public void setGradeId(long gradeId) {
         this.gradeId = gradeId;
+    }
+    
+    public Server getPrimary() {
+        return primary;
+    }
+
+    public void setPrimary(Server primary) {
+        this.primary = primary;
+    }
+    
+    public ServerList getSecondarys() {
+        return secondarys;
+    }
+
+    public void setSecondarys(ServerList secondarys) {
+        this.secondarys = secondarys;
     }
    
     }
