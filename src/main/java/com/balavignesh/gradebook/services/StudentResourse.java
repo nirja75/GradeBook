@@ -97,7 +97,7 @@ public class StudentResourse {
         }
     }
     
-        @DELETE
+    @DELETE
     @Path("gradebook/{id}")
     public Response deleteGradebookbyId(@PathParam("id") long id){
         GradeBook IdPresent = gradeBookDb.filterGradeBookById(id);
@@ -111,8 +111,6 @@ public class StudentResourse {
         
     }
     
-    
-    
     @POST
     @Path("/gradebook/{id}/student/{name}/grade/{grade}")
     public Response createStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
@@ -125,25 +123,23 @@ public class StudentResourse {
        return createOrModifyStudent(id,name,grade);
     }
     
-
-    
     @DELETE
     @Path("gradebook/{id}/student/{name}")
     public Response deleteStudent(@PathParam("id") long id,@PathParam("name") String name){
-         GradeBook IdPresent = gradeBookDb.filterGradeBookById(id);
-
-        StudentList studentList = gradeBookDb.getAllStudents(id);
-        Student namePresent = gradeBookDb.filterStudent(studentList,name);
-        if(IdPresent ==null || namePresent == null){
+        GradeBook gradebook = gradeBookDb.filterGradeBookById(id);
+        if(gradebook ==null){
             throw new BadRequestException();  
-        }
-        else{
-            studentList.getStudent().remove(namePresent);
-          return Response.ok().build();   
-        }
-        
-       
-        
+        }else{
+            StudentList studentList = gradeBookDb.getAllStudents(id);
+            Student namePresent = gradeBookDb.filterStudent(studentList,name);
+            if(namePresent == null){
+                throw new BadRequestException();  
+            }
+            else{
+                studentList.getStudent().remove(namePresent);
+                return Response.ok().build();   
+            }     
+        }   
     }
     
     
@@ -158,25 +154,21 @@ public class StudentResourse {
         }else{
             throw new BadRequestException("Grade Not Present");
         }
-    }
-    
+    }   
     
     @GET
     @Path("/gradebook/{id}/student")
     @Produces("application/XML")
     public StudentList getAllStudent(@PathParam("id")  long id){
-       return  gradeBookDb.getAllStudents(id);
+       return gradeBookDb.getAllStudents(id);
     }
     
     @GET
     @Path("/gradebook/{id}/student/{name}")
     @Produces("application/XML")
     public Student getAllStudent(@PathParam("id")  long id,@PathParam("name") String name){
-       return  gradeBookDb.getStudent(id,name);
+       return gradeBookDb.getStudent(id,name);
     }
-    
-   
-    
     
     public static String execReadToString(String execCommand) throws IOException {
     try (Scanner s = new Scanner(Runtime.getRuntime().exec(execCommand).getInputStream()).useDelimiter("\\A")) {
