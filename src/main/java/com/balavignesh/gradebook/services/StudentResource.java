@@ -44,15 +44,18 @@ public class StudentResource {
     {
         try{
          SendRequest s = new SendRequest();
-         String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/student", "GET");
+         String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/serverdetails", "GET");
         System.out.println(str);
-        }catch(Exception e){
+         return str;
+        }
+        
+        catch(Exception e){
             return e.getMessage();
         }
-        return ("Hi");
+       
         
-    }
-   
+    } 
+    
     @GET
     @Path("/serverdetails")
     @Produces(MediaType.TEXT_PLAIN+";charset=utf-8")
@@ -70,11 +73,14 @@ public class StudentResource {
         return gradeBookDb.getGradeBookList();
     }
     
+    
+    
     @POST
     @Path("/gradebook/{name}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response createGradeBooks(@PathParam("name") String name) throws IOException{
-         return createOrModifyGradeBooks(name);
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response createGradeBooks(@PathParam("name") String name) throws IOException{
+        return createOrModifyGradeBooks(name);
+        
     }
     
     @POST
