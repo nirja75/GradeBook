@@ -16,6 +16,7 @@ import com.balavignesh.gradebook.domain.StudentList;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Collections;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -27,6 +28,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.NotFoundException;
 
 /**
  *
@@ -65,16 +67,21 @@ public class StudentResource {
          buffer.append(" \n my external ip:" + gradeBookDb.getMyIP());
         return buffer.toString();
     }
-    
+
     @GET
     @Path("/gradebook")
     @Produces(MediaType.TEXT_XML+";charset=utf-8")
     public GradeBookList getGradeBookList(){
+       boolean gbsize = gradeBookDb.gradeBookList.getGradebook().isEmpty();
+        if (gbsize == true){
+        System.out.println("gradebook list is empty");
+        throw new NotFoundException(Response.status(Response.Status.NOT_FOUND).entity("GradeBook List is Empty.Create new Gradebooks!").build());
+                }else {
+        System.out.println("Getting all gradebooks");    
         return gradeBookDb.getGradeBookList();
-    }
-    
-    
-    
+    }   
+}
+       
     @POST
     @Path("/gradebook/{name}")
     @Produces(MediaType.TEXT_PLAIN)

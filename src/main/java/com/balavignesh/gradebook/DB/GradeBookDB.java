@@ -36,12 +36,12 @@ import javax.xml.bind.Marshaller;
  */
 public class GradeBookDB {
     
-    private GradeBookList gradeBookList = new GradeBookList();
+    public GradeBookList gradeBookList = new GradeBookList();
     private ServerList serverList = new ServerList();
     
     
     private Map<Long, StudentList> gradeWithStudent= new HashMap<Long, StudentList>();
-    private static AtomicInteger idCounter = new AtomicInteger();
+    public static AtomicInteger idCounter = new AtomicInteger();
     
     public void addDefaults(){
         createServer("balavignesh","35.224.65.85","8080","GradeBook");
