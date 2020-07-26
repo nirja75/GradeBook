@@ -52,6 +52,7 @@ public class StudentResource {
         catch(Exception e){
             return e.getMessage();
         }
+        
        
         
     } 
@@ -64,6 +65,9 @@ public class StudentResource {
          buffer.append(" \n getMyHostName:"+gradeBookDb.getMyHostName());
          buffer.append(" \n my external ip:" + gradeBookDb.getMyIP());
         return buffer.toString();
+        
+        
+ 
     }
     
     @GET
@@ -117,7 +121,7 @@ public class StudentResource {
         }
     }
     
-    private Response copyGradeBook(GradeBook gradeBook) throws IOException{
+    private Response copyGradeBook(GradeBook gradeBook) throws IOException{ 
          if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
             throw new BadRequestException();
         }
