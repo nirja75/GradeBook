@@ -45,7 +45,7 @@ public class StudentResource {
     {
         try{
          SendRequest s = new SendRequest();
-         String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/serverdetails", "GET",null);
+         String str = s.SendRequest("http://35.224.65.85:8080/GradeBook/resources/serverdetails", "GET",null);
          System.out.println(str);
          return str;
         }
@@ -53,6 +53,7 @@ public class StudentResource {
         catch(Exception e){
             return e.getMessage();
         }
+        
        
         
     } 
@@ -66,6 +67,9 @@ public class StudentResource {
          buffer.append(" \n getMyHostName:"+gradeBookDb.getMyHostName());
          buffer.append(" \n my external ip:" + gradeBookDb.getMyIP());
         return buffer.toString();
+        
+        
+ 
     }
 
     @GET
@@ -123,7 +127,7 @@ public class StudentResource {
         }
     }
     
-    private Response copyGradeBook(GradeBook gradeBook) throws IOException{
+    private Response copyGradeBook(GradeBook gradeBook) throws IOException{ 
          if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
             throw new BadRequestException();
         }
