@@ -13,6 +13,7 @@ import com.balavignesh.gradebook.domain.ServerList;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -24,7 +25,10 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.BadRequestException;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 /**
  *
@@ -35,8 +39,15 @@ public class GradeBookDB {
     private GradeBookList gradeBookList = new GradeBookList();
     private ServerList serverList = new ServerList();
     
+    
     private Map<Long, StudentList> gradeWithStudent= new HashMap<Long, StudentList>();
     private static AtomicInteger idCounter = new AtomicInteger();
+    
+    public void addDefaults(){
+        createServer("balavignesh","35.224.65.85","8080","GradeBook");
+        createServer("prj2","34.68.29.81","8080","GradeBook");
+        //createServer("localhost","104.48.130.146","8080","GradeBook");
+    }
     
     public long createGradebook(String title) throws IOException{
         GradeBook gradeBook = new GradeBook();
@@ -45,7 +56,7 @@ public class GradeBookDB {
         gradeBook.setGradeTitle(title);
         
         Server server = filterServerByIp(getMyIP());
-        gradeBook.setPrimary(server);
+        gradeBook.setServer(server);
         
        gradeBookList.getGradebook().add(gradeBook);
        return idCounter.longValue();
@@ -57,9 +68,9 @@ public class GradeBookDB {
     }
      
     public void pushToGradeSecondaries(GradeBook gradeBook) throws IOException{
-        if(gradeBook!=null && gradeBook.getSecondarys()!=null && gradeBook.getSecondarys().getServer()!=null
-                && gradeBook.getSecondarys().getServer().size()>0){
-            List<Server> servers = filterServerByNotIp(gradeBook.getSecondarys().getServer(),getMyIP());
+        if(gradeBook!=null && gradeBook.getServerList()!=null && gradeBook.getServerList().getServer()!=null
+                && gradeBook.getServerList().getServer().size()>0){
+            List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
             
             //TODO
             
@@ -71,14 +82,11 @@ public class GradeBookDB {
     public void pushToAllSecondaries(GradeBook gradeBook) throws IOException{
         if(gradeBook!=null && serverList.getServer().size()>1){
             List<Server> servers = filterServerByNotIp(serverList.getServer(),getMyIP());
-            
-            //TODO
-                   
+            servers.stream().forEach(server->{
+                sentMessage(server,"/resources/gradebook","POST",jaxbObjectToXML(gradeBook));
+            });
         }
-        
     }
-     
-     
      
     public GradeBook filterGradeBookByName(String name) {
         if(name == null || name.trim().length()==0 || gradeBookList.getGradebook()==null || gradeBookList.getGradebook().size()==0){
@@ -116,7 +124,8 @@ public class GradeBookDB {
         if(ip == null || ip.trim().length()==0 || serverList.getServer()==null || serverList.getServer().size()==0){
             return null;
         }
-        return serverList.getServer().stream().filter(student->ip.equalsIgnoreCase(student.getIp()))
+        return serverList.getServer().stream().filter(student->
+                ip.equalsIgnoreCase(student.getIp()))
                 .findFirst().orElse(null);
     } 
     
@@ -137,12 +146,17 @@ public class GradeBookDB {
     }
      
     public void createServer(String name,String ip,String port,String contextroot){
-        Server server = new Server();
-        server.setName(name);
-        server.setIp(ip);
-        server.setPort(port);
-        server.setContextRoot(contextroot);    
-        serverList.getServer().add(server);
+        
+        Server serverPresent = filterServerByName(name);
+        if(serverPresent == null ){
+            Server server = new Server();
+            server.setName(name);
+            server.setIp(ip);
+            server.setPort(port);
+            server.setContextRoot(contextroot);    
+            serverList.getServer().add(server);
+        }
+        
     }
 
     public void createStudent(long id, String name, String grade) {
@@ -185,13 +199,44 @@ public class GradeBookDB {
     }
     
     public String getMyIP() throws UnknownHostException, SocketException, IOException{
-        return execReadToString("curl https://checkip.amazonaws.com");
+        String ip = execReadToString("curl https://checkip.amazonaws.com");
+        ip = ip.replace("\n", "");
+        return ip;
     }
     
     public static String execReadToString(String execCommand) throws IOException {
     try (Scanner s = new Scanner(Runtime.getRuntime().exec(execCommand).getInputStream()).useDelimiter("\\A")) {
         return s.hasNext() ? s.next() : "";
     }
+    }
+    
+    
+    public String sentMessage(Server server,String url, String method,String content){
+        SendRequest s = new SendRequest();
+        
+         String str = s.SendRequest("http://"+server.getIp()+":"+server.getPort()+"/"+
+                 server.getContextRoot()+url, method,content);
+         System.out.println(str);
+         return str;
+    }
+    
+    private static String jaxbObjectToXML(GradeBook gradebook) {
+    String xmlString = "";
+    try {
+        JAXBContext context = JAXBContext.newInstance(GradeBook.class);
+        Marshaller m = context.createMarshaller();
+
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE); // To format XML
+
+        StringWriter sw = new StringWriter();
+        m.marshal(gradebook, sw);
+        xmlString = sw.toString();
+
+    } catch (JAXBException e) {
+        e.printStackTrace();
+    }
+
+    return xmlString;
     }
     
 }

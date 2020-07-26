@@ -44,8 +44,8 @@ public class StudentResource {
     {
         try{
          SendRequest s = new SendRequest();
-         String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/serverdetails", "GET");
-        System.out.println(str);
+         String str = s.SendRequest("http://gradebook.balavignesh.com:8080/GradeBook/resources/serverdetails", "GET",null);
+         System.out.println(str);
          return str;
         }
         
@@ -60,6 +60,7 @@ public class StudentResource {
     @Path("/serverdetails")
     @Produces(MediaType.TEXT_PLAIN+";charset=utf-8")
     public String getServerDetails() throws UnknownHostException, SocketException, IOException{
+        gradeBookDb.addDefaults();
         StringBuffer buffer = new StringBuffer();
          buffer.append(" \n getMyHostName:"+gradeBookDb.getMyHostName());
          buffer.append(" \n my external ip:" + gradeBookDb.getMyIP());
@@ -77,10 +78,9 @@ public class StudentResource {
     
     @POST
     @Path("/gradebook/{name}")
-   @Produces(MediaType.TEXT_PLAIN)
-   public Response createGradeBooks(@PathParam("name") String name) throws IOException{
-        return createOrModifyGradeBooks(name);
-        
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response createGradeBooks(@PathParam("name") String name) throws IOException{
+        return createOrModifyGradeBooks(name);    
     }
     
     @POST
@@ -107,7 +107,7 @@ public class StudentResource {
           long gradeId = gradeBookDb.createGradebook(name);
           
            GradeBook gradecreated = gradeBookDb.filterGradeBookByName(name);
-           if(gradePresent != null ){
+           if(gradecreated != null ){
                gradeBookDb.pushToAllSecondaries(gradecreated);
            }
            

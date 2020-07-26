@@ -8,6 +8,7 @@ package com.balavignesh.gradebook.connection;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,7 +19,7 @@ public class SendRequest {
 
 //private int connectionTimeOut = 10000;
 
-public String SendRequest(String URL, String method) {
+public String SendRequest(String URL, String method, String request) {
 
 BufferedReader reader = null;
 try {
@@ -34,7 +35,18 @@ conn.setRequestMethod(method);
 conn.setDoInput(true);
 conn.setDoOutput(true);
 
-conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+//conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+
+//conn.setRequestProperty("Accept", "application/xml");
+conn.setRequestProperty("Content-Type", "application/xml");
+
+if(request!=null){
+    OutputStream outputStream = conn.getOutputStream();
+    byte[] b = request.getBytes("UTF-8");
+    outputStream.write(b);
+    outputStream.flush();
+    outputStream.close();   
+}
 //OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
 //wr.flush();
 
