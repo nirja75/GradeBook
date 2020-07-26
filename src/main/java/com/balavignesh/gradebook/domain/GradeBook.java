@@ -17,7 +17,6 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-
 })
 @XmlRootElement(name = "gradebook")
 public class GradeBook {
@@ -26,10 +25,10 @@ public class GradeBook {
     protected String gradeTitle;
     @XmlElement(required = true)
     protected long gradeId;
-    @XmlElement(required = true)
-    protected Server primary;
-    @XmlElement(required = false)
-    protected ServerList secondarys;
+    @XmlElement(name = "server",required = true)
+    protected Server server;
+    @XmlElement(name = "server-list",required = false)
+    protected ServerList serverList;
 
     public String getGradeTitle() {
         return gradeTitle;
@@ -47,20 +46,20 @@ public class GradeBook {
         this.gradeId = gradeId;
     }
     
-    public Server getPrimary() {
-        return primary;
+    public Server getServer() {
+        return server;
     }
 
-    public void setPrimary(Server primary) {
-        this.primary = primary;
+    public void setServer(Server server) {
+        this.server = server;
     }
     
-    public ServerList getSecondarys() {
-        return secondarys;
+    public ServerList getServerList() {
+        return serverList;
     }
 
-    public void setSecondarys(ServerList secondarys) {
-        this.secondarys = secondarys;
+    public void setServerList(ServerList serverList) {
+        this.serverList = serverList;
     }
    
     }
