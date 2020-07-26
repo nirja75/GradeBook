@@ -57,7 +57,7 @@ public class GradeBookDB {
         
         Server server = filterServerByIp(getMyIP());
         gradeBook.setServer(server);
-        
+        gradeBook.setServerList(new ServerList());
        gradeBookList.getGradebook().add(gradeBook);
        return idCounter.longValue();
     }
@@ -79,7 +79,7 @@ public class GradeBookDB {
         
     } 
     
-    public void pushToAllSecondaries(GradeBook gradeBook) throws IOException{
+    public void pushToAllServers(GradeBook gradeBook) throws IOException{
         if(gradeBook!=null && serverList.getServer().size()>1){
             List<Server> servers = filterServerByNotIp(serverList.getServer(),getMyIP());
             servers.stream().forEach(server->{
@@ -128,6 +128,29 @@ public class GradeBookDB {
                 ip.equalsIgnoreCase(student.getIp()))
                 .findFirst().orElse(null);
     } 
+    
+     public Server filterServerByIp(List<Server> servers, String ip) {
+        if(ip == null || ip.trim().length()==0 || servers==null || servers.size()==0){
+            return null;
+        }
+        return servers.stream().filter(student->
+                ip.equalsIgnoreCase(student.getIp()))
+                .findFirst().orElse(null);
+    } 
+     
+     public boolean isPrimary(GradeBook gradeBook) throws IOException {
+        if(gradeBook==null || gradeBook.getServer()==null ||gradeBook.getServer().getIp()==null){
+            return false;
+        }
+        return getMyIP().equalsIgnoreCase(gradeBook.getServer().getIp());
+    }
+     
+     public boolean isSecondary(GradeBook gradeBook) throws IOException {
+        if(gradeBook==null || gradeBook.getServer()==null ||gradeBook.getServer().getIp()==null){
+            return false;
+        }
+        return filterServerByIp(gradeBook.getServerList().getServer(),getMyIP())!=null ? true:false;
+    }
     
     public List<Server> filterServerByNotIp(List<Server> list ,String ip) {
         if(ip == null || ip.trim().length()==0 || list==null || list.size()==0){
