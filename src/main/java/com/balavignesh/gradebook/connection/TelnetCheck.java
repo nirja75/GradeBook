@@ -20,11 +20,13 @@ class TelnetCheck extends TimerTask
     {
             int port=8080;
             int totalclients = 4;
-            String ip[]={"35.224.65.85","34.68.29.81","35.239.150.64","34.68.29.81"};  
+            String ip[]={"35.224.65.85","34.68.29.81","35.239.150.64","104.198.27.100"};
+            int k =ip.length;
 	    TimerTask con  = new TelnetCheck();
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(con,1,1000);
-        
+            StringBuilder stringBuilder = new StringBuilder();
+            
         for(int i=0;i<totalclients;i++){
         try
         {
@@ -45,7 +47,7 @@ class TelnetCheck extends TimerTask
         catch(Exception e)
         {
             System.out.println(e + " for " + ip[i]);   
-        }         
+        }        
     }}
  
     @Override
