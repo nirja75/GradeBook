@@ -16,7 +16,8 @@ import com.balavignesh.gradebook.domain.StudentList;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -75,14 +76,17 @@ public class StudentResource {
     @GET
     @Path("/gradebook")
     @Produces(MediaType.TEXT_XML+";charset=utf-8")
-    public GradeBookList getGradeBookList(){
-       boolean gbsize = gradeBookDb.gradeBookList.getGradebook().isEmpty();
-        if (gbsize == true){
+    public Response getGradeBookList() throws IOException{
+       List<GradeBook> gradeBookLists =gradeBookDb.getGradeBookListOnlyVisible();
+       boolean gbsize = gradeBookLists.isEmpty();
+        if (gbsize){
         System.out.println("gradebook list is empty");
-        throw new NotFoundException(Response.status(Response.Status.NOT_FOUND).entity("GradeBook List is Empty.Create new Gradebooks!").build());
+        throw new NotFoundException(Response.status(Response.Status.NOT_FOUND).entity("<xml>GradeBook List is Empty.Create new Gradebooks!</xml>").build());
                 }else {
         System.out.println("Getting all gradebooks");    
-        return gradeBookDb.getGradeBookList();
+        GradeBookList bookList = new GradeBookList();
+        bookList.getGradebook().addAll(gradeBookLists);
+        return Response.status(javax.ws.rs.core.Response.Status.OK).entity(bookList).build();
     }   
 }
        

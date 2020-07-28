@@ -46,7 +46,7 @@ public class GradeBookDB {
     public void addDefaults(){
         createServer("balavignesh","35.224.65.85","8080","GradeBook");
         createServer("prj2","34.68.29.81","8080","GradeBook");
-        //createServer("localhost","104.48.130.146","8080","GradeBook");
+        createServer("localhost","104.48.130.146","8080","GradeBook");
     }
     
     public long createGradebook(String title) throws IOException{
@@ -162,6 +162,18 @@ public class GradeBookDB {
 
     public GradeBookList getGradeBookList() {
         return gradeBookList;
+    }
+    public List<GradeBook> getGradeBookListOnlyVisible() throws IOException {
+       String myIp = getMyIP();
+       List<GradeBook> gradeBookLists= gradeBookList.getGradebook().stream().map(gradeBook -> { 
+           if(gradeBook.getServer()!=null && myIp.equalsIgnoreCase(gradeBook.getServer().getIp())){
+           gradeBook.setVisible(true);
+            }else if(filterServerByIp(gradeBook.getServerList().getServer(),myIp)!=null){
+                gradeBook.setVisible(true);
+            }
+        return gradeBook;
+       }).filter(gradebook -> gradebook.isVisible()).collect(Collectors.toList()); 
+       return gradeBookLists;
     }
     
      public ServerList getServerList() {

@@ -5,12 +5,7 @@
  */
 package com.balavignesh.gradebook.domain;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
+import javax.xml.bind.annotation.*;
 /**
  *
  * @author psubr
@@ -29,6 +24,17 @@ public class GradeBook {
     protected Server server;
     @XmlElement(name = "server-list",required = false)
     protected ServerList serverList;
+   
+    @XmlTransient
+    protected boolean visible;
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
 
     public String getGradeTitle() {
         return gradeTitle;
