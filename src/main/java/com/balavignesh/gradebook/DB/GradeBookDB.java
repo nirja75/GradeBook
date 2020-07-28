@@ -46,6 +46,8 @@ public class GradeBookDB {
     public void addDefaults(){
         createServer("balavignesh","35.224.65.85","8080","GradeBook");
         createServer("prj2","34.68.29.81","8080","GradeBook");
+        createServer("project-2","104.197.5.217","8080","GradeBook");
+        createServer("glassfish-server","35.202.183.42","8080","GradeBook");
         createServer("localhost","104.48.130.146","8080","GradeBook");
     }
     
