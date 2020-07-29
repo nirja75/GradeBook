@@ -47,7 +47,7 @@ public class GradeBookDB {
         createServer("ashok","34.68.29.81","8080","GradeBook");
         createServer("manasa","104.197.5.217","8080","GradeBook");
         createServer("neeraja","35.202.183.42","8080","GradeBook");
-        createServer("localhost","104.48.130.146","8080","GradeBook");
+        //createServer("localhost","104.48.130.146","8080","GradeBook");
     }
     
     public void clearall(){
