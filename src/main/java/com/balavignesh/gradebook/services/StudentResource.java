@@ -147,7 +147,7 @@ public class StudentResource {
     }
     
     @DELETE
-    @Path("gradebook/{id}")
+    @Path("/gradebook/{id}")
     public Response deleteGradebookbyId(@PathParam("id") long id){
         GradeBook IdPresent = gradeBookDb.filterGradeBookById(id);
         if(IdPresent ==null){
@@ -159,8 +159,7 @@ public class StudentResource {
         }
         
     }
-       
-
+    
     @PUT
     @Path("/secondary/{id}")
     public Response createSecondary(@PathParam("id") long id) throws IOException{
