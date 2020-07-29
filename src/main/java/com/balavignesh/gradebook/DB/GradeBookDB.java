@@ -336,7 +336,7 @@ public class GradeBookDB {
     private void pushToAllSecondaries(long id,Student student) throws SocketException, IOException {
         if(student!=null && serverList.getServer().size()>1){
              GradeBook gradePresent = getGradeBookOnlyVisible(id);
-            if(gradePresent != null && isSecondary(gradePresent)){
+            if(gradePresent != null && isPrimary(gradePresent)){
                 List<Server> servers = filterServerByNotIp(gradePresent.getServerList().getServer(),getMyIP());
                 servers.stream().forEach(server->{
                     sentMessage(server,"/resources/gradebook/"+id+"/student","POST",jaxbObjectToXML(student));
