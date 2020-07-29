@@ -13,6 +13,7 @@ import com.balavignesh.gradebook.domain.ServerList;
 import com.balavignesh.gradebook.domain.Student;
 import com.balavignesh.gradebook.domain.StudentList;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -25,10 +26,10 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import javax.ws.rs.BadRequestException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 /**
  *
@@ -38,17 +39,27 @@ public class GradeBookDB {
     
     public GradeBookList gradeBookList = new GradeBookList();
     private ServerList serverList = new ServerList();
-    
-    
-    private Map<Long, StudentList> gradeWithStudent= new HashMap<Long, StudentList>();
+    private Map<Long, StudentList> gradeWithStudent= new HashMap<>();
     public static AtomicInteger idCounter = new AtomicInteger();
     
     public void addDefaults(){
-        createServer("balavignesh","35.224.65.85","8080","GradeBook");
-        createServer("prj2","34.68.29.81","8080","GradeBook");
-        createServer("project-2","104.197.5.217","8080","GradeBook");
-        createServer("glassfish-server","35.202.183.42","8080","GradeBook");
+        createServer("bala","35.224.65.85","8080","GradeBook");
+        createServer("ashok","34.68.29.81","8080","GradeBook");
+        createServer("manasa","104.197.5.217","8080","GradeBook");
+        createServer("neeraja","35.202.183.42","8080","GradeBook");
         createServer("localhost","104.48.130.146","8080","GradeBook");
+    }
+    
+    public void clearall(){
+        gradeBookList = new GradeBookList();
+        serverList = new ServerList();
+        gradeWithStudent= new HashMap<>();
+        idCounter = new AtomicInteger();
+        addDefaults();
+    }
+    
+    public long getAtomicInteger(){
+        return idCounter.longValue();
     }
     
     public long createGradebook(String title) throws IOException{
@@ -69,18 +80,6 @@ public class GradeBookDB {
         idCounter.set((int)gradeBook.getGradeId());
     }
      
-    public void pushToGradeSecondaries(GradeBook gradeBook) throws IOException{
-        if(gradeBook!=null && gradeBook.getServerList()!=null && gradeBook.getServerList().getServer()!=null
-                && gradeBook.getServerList().getServer().size()>0){
-            List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
-            
-            //TODO
-            
-            
-        }
-        
-    } 
-    
     public void pushToAllServers(GradeBook gradeBook) throws IOException{
         if(gradeBook!=null && serverList.getServer().size()>1){
             List<Server> servers = filterServerByNotIp(serverList.getServer(),getMyIP());
@@ -172,10 +171,21 @@ public class GradeBookDB {
            gradeBook.setVisible(true);
             }else if(filterServerByIp(gradeBook.getServerList().getServer(),myIp)!=null){
                 gradeBook.setVisible(true);
+            }else{
+                gradeBook.setVisible(false);
             }
         return gradeBook;
        }).filter(gradebook -> gradebook.isVisible()).collect(Collectors.toList()); 
        return gradeBookLists;
+    }
+    
+    public GradeBook getGradeBookOnlyVisible(long id) throws IOException {
+        List<GradeBook> gradeBookLists = getGradeBookListOnlyVisible();
+      if(id == 0 || gradeBookLists==null || gradeBookLists.size()==0){
+            return null;
+        }
+        return gradeBookLists.stream().filter(student->id == student.getGradeId())
+                .findFirst().orElse(null);
     }
     
      public ServerList getServerList() {
@@ -196,7 +206,7 @@ public class GradeBookDB {
         
     }
 
-    public void createStudent(long id, String name, String grade) {
+    public void createStudent(long id, String name, String grade) throws IOException {
         Student student = new Student();
         student.setName(name);
         student.setGrade(grade);
@@ -204,11 +214,29 @@ public class GradeBookDB {
         if(gradeWithStudent.containsKey(id)){
            Student studentSaved = filterStudent(gradeWithStudent.get(id),name);
         
+        if(studentSaved == null ){     
+            gradeWithStudent.get(id).getStudent().add(student);
+        }else{
+            studentSaved.setGrade(grade);
+        }
+        }else{
+            StudentList studentList = new StudentList();
+            studentList.getStudent().add(student);
+            gradeWithStudent.put(id, studentList);
+        }
+        pushToAllSecondaries(id,student);
+    }
+    
+    public void copyStudent(long id, Student student) {
+        
+       if(gradeWithStudent.containsKey(id)){
+           Student studentSaved = filterStudent(gradeWithStudent.get(id),student.getName());
+        
         if(studentSaved == null ){
            
             gradeWithStudent.get(id).getStudent().add(student);
         }else{
-            studentSaved.setGrade(grade);
+            studentSaved.setGrade(student.getGrade());
         }
         }else{
             StudentList studentList = new StudentList();
@@ -272,8 +300,88 @@ public class GradeBookDB {
     } catch (JAXBException e) {
         e.printStackTrace();
     }
+    return xmlString;
+    }
+    private static String jaxbObjectToXML(Student student) {
+    String xmlString = "";
+    try {
+        JAXBContext context = JAXBContext.newInstance(Student.class);
+        Marshaller m = context.createMarshaller();
+
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE); // To format XML
+
+        StringWriter sw = new StringWriter();
+        m.marshal(student, sw);
+        xmlString = sw.toString();
+
+    } catch (JAXBException e) {
+        e.printStackTrace();
+    }
 
     return xmlString;
+    }
+    
+    private static StudentList jaxbXMLToobject(String studentList) {
+    StudentList studentListRece = null;
+    try {
+        JAXBContext context = JAXBContext.newInstance(StudentList.class);
+        Unmarshaller m = context.createUnmarshaller();
+        studentListRece = (StudentList)m.unmarshal(new StringReader(studentList));
+        } catch (JAXBException e) {
+        e.printStackTrace();
+    }
+    return studentListRece;
+    }
+
+    private void pushToAllSecondaries(long id,Student student) throws SocketException, IOException {
+        if(student!=null && serverList.getServer().size()>1){
+             GradeBook gradePresent = getGradeBookOnlyVisible(id);
+            if(gradePresent != null && isSecondary(gradePresent)){
+                List<Server> servers = filterServerByNotIp(gradePresent.getServerList().getServer(),getMyIP());
+                servers.stream().forEach(server->{
+                    sentMessage(server,"/resources/gradebook/"+id+"/student","POST",jaxbObjectToXML(student));
+                });
+            }
+            
+        }
+    }
+
+    public void deleteAllSecondary(GradeBook gradeBook) throws IOException {
+        if(gradeBook!=null && serverList.getServer().size()>1 && isPrimary(gradeBook) && !gradeBook.getServerList().getServer().isEmpty()){
+            List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
+            servers.stream().forEach(server->{
+                sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);
+            });
+        }
+    }
+
+    public void deleteAllSecondaryStudent(GradeBook gradebook,Student student) throws IOException {
+        if(student!=null && serverList.getServer().size()>1){
+             if(gradebook != null && isSecondary(gradebook)){
+                List<Server> servers = filterServerByNotIp(gradebook.getServerList().getServer(),getMyIP());
+                servers.stream().forEach(server->{
+                    sentMessage(server,"/resources/secondary/"+gradebook.getGradeId()+"/student/"+student.getName(),"DELETE",null);
+                });
+            }
+            
+        }
+    }
+
+    public void populateStudents(GradeBook gradeBook) throws IOException {
+        String test = null;
+        if(serverList.getServer().size()>1){
+             if(gradeBook != null && isSecondary(gradeBook)){
+                Server server = filterServerByIp(serverList.getServer(),gradeBook.getServer().getIp());
+               StudentList studentListRece = jaxbXMLToobject(sentMessage(server,"/resources/gradebook/"+gradeBook.getGradeId()+"/student","GET",null));
+               gradeWithStudent.put(gradeBook.getGradeId(), studentListRece);
+                
+            }
+            
+        }
+    }
+
+    public void removeStudents(GradeBook gradeBook) {
+        gradeWithStudent.remove(gradeBook.getGradeId());
     }
     
 }
