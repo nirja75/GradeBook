@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -68,9 +67,49 @@ public class StudentResource {
          buffer.append(" \n getMyHostName:"+gradeBookDb.getMyHostName());
          buffer.append(" \n my external ip:" + gradeBookDb.getMyIP());
         return buffer.toString();
+    }
+    
+    @GET
+    @Path("/clearall")
+    @Produces(MediaType.TEXT_PLAIN+";charset=utf-8")
+    public String clearall() throws UnknownHostException, SocketException, IOException{
+        gradeBookDb.clearall();
+        StringBuilder buffer = new StringBuilder();
+         buffer.append(" Cleared all");
+        return buffer.toString();
+    }
+    
+    @GET
+    @Path("/getInt")
+    @Produces(MediaType.TEXT_PLAIN+";charset=utf-8")
+    public String getInt() throws UnknownHostException, SocketException, IOException{
         
+        StringBuilder buffer = new StringBuilder();
+         buffer.append(gradeBookDb.getAtomicInteger());
+        return buffer.toString();
+    }
+    
+    @GET
+    @Path("/injectprimary/{name}/{id}")
+   @Produces(MediaType.TEXT_XML+";charset=utf-8")
+    public GradeBook injectPrimary(@PathParam("name") String name,@PathParam("id") long id) throws UnknownHostException, SocketException, IOException{
         
- 
+      GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
+      Server server = gradeBookDb.filterServerByName(name);
+      gradeBook.setServer(server);
+      return gradeBook;
+    }
+    
+    @GET
+    @Path("/injectsecondary/{name}/{id}")
+    @Produces(MediaType.TEXT_XML+";charset=utf-8")
+    public GradeBook injectsecondary(@PathParam("name") String name,@PathParam("id") long id) throws UnknownHostException, SocketException, IOException{
+       GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
+       if(!gradeBookDb.isSecondary(gradeBook)){
+           Server server = gradeBookDb.filterServerByName(name);
+           gradeBook.getServerList().getServer().add(server);
+       }
+       return gradeBook;
     }
 
     @GET
@@ -127,12 +166,12 @@ public class StudentResource {
            
           return Response.status(javax.ws.rs.core.Response.Status.CREATED).entity(gradeId).build();
         }else{
-            throw new BadRequestException("the title already exists");
+            throw new BadRequestException("the title already exists in this server or another server");
         }
     }
     
     private Response copyGradeBook(GradeBook gradeBook) throws IOException{ 
-         if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
+        if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
             throw new BadRequestException();
         }
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(gradeBook.getGradeTitle());
@@ -148,13 +187,28 @@ public class StudentResource {
     
     @DELETE
     @Path("/gradebook/{id}")
-    public Response deleteGradebookbyId(@PathParam("id") long id){
-        GradeBook IdPresent = gradeBookDb.filterGradeBookById(id);
-        if(IdPresent ==null){
+    public Response deleteGradebookbyId(@PathParam("id") long id) throws IOException{
+        GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
+        if(gradeBook ==null || !gradeBookDb.isPrimary(gradeBook)){
           throw new BadRequestException();  
         }
         else{
-            gradeBookDb.getGradeBookList().getGradebook().remove(IdPresent);
+            gradeBookDb.deleteAllSecondary(gradeBook);
+            gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
+            return Response.ok().build();
+        }
+        
+    }
+    
+    @DELETE
+    @Path("/gradebookcopy/{id}")
+    public Response deleteGradebookCopybyId(@PathParam("id") long id) throws IOException{
+        GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
+        if(gradeBook ==null){
+          throw new BadRequestException();  
+        }
+        else{
+            gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
             return Response.ok().build();
         }
         
@@ -173,19 +227,20 @@ public class StudentResource {
     }
     
     private Response createOrModifySecondary(long id) throws IOException{
-        GradeBook idPresent = gradeBookDb.filterGradeBookById(id);      
-        if(idPresent ==null){
+        GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);      
+        if(gradeBook ==null){
             throw new BadRequestException("there is no GradeBook with the given id");  
         }else{
             String ip = gradeBookDb.getMyIP();
-            if(gradeBookDb.isSecondary(idPresent)){
+            if(gradeBookDb.isSecondary(gradeBook)){
                 throw new BadRequestException("the server already has a secondary copy of the GradeBook");  
             }else{           
-                if(gradeBookDb.isPrimary(idPresent)){
+                if(gradeBookDb.isPrimary(gradeBook)){
                     throw new BadRequestException("the server is the primary server for the GradeBook");  
                 }else{
-                   idPresent.getServerList().getServer().add(gradeBookDb.filterServerByIp(ip));
-                    gradeBookDb.pushToAllServers(idPresent);
+                   gradeBook.getServerList().getServer().add(gradeBookDb.filterServerByIp(ip));
+                   gradeBookDb.populateStudents(gradeBook);
+                    gradeBookDb.pushToAllServers(gradeBook);
                     return Response.ok().build();  
                 }           
             }           
@@ -195,20 +250,21 @@ public class StudentResource {
     @DELETE
     @Path("/secondary/{id}")
     public Response deleteSecondarybyId(@PathParam("id") long id) throws IOException{
-        GradeBook idPresent = gradeBookDb.filterGradeBookById(id);
-        if(idPresent ==null){
+        GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
+        if(gradeBook ==null){
           throw new BadRequestException("there is no GradeBook with the given id");  
         }
         else{
             String ip = gradeBookDb.getMyIP();
-            if(!gradeBookDb.isSecondary(idPresent)){
+            if(!gradeBookDb.isSecondary(gradeBook)){
                 throw new BadRequestException("the server does not have a secondary copy of the GradeBook");  
             }else{           
-                if(gradeBookDb.isPrimary(idPresent)){
+                if(gradeBookDb.isPrimary(gradeBook)){
                     throw new BadRequestException("the server is the primary server for the GradeBook");  
                 }else{
-                    idPresent.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
-                    gradeBookDb.pushToAllServers(idPresent);
+                    gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
+                    gradeBookDb.removeStudents(gradeBook);
+                    gradeBookDb.pushToAllServers(gradeBook);
                     return Response.ok().build();  
                 }           
             }          
@@ -218,21 +274,72 @@ public class StudentResource {
     
     @POST
     @Path("/gradebook/{id}/student/{name}/grade/{grade}")
-    public Response createStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
+    public Response createStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade) throws IOException{
           return createOrModifyStudent(id,name,grade);
     }
     
     @PUT
     @Path("/gradebook/{id}/student/{name}/grade/{grade}")
-    public Response modifyStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade){
+    public Response modifyStudent(@PathParam("id") long id,@PathParam("name") String name,@PathParam("grade") String grade) throws IOException{
        return createOrModifyStudent(id,name,grade);
+    }
+    
+     private Response createOrModifyStudent(long id,String name,String grade) throws IOException{
+        if(id == 0 || grade==null || "".equalsIgnoreCase(grade) || !gradeBookDb.validGrade(grade) ){
+            throw new BadRequestException();
+        }
+        GradeBook gradePresent = gradeBookDb.filterGradeBookById(id);
+       if(gradePresent != null && gradeBookDb.isPrimary(gradePresent)){
+          gradeBookDb.createStudent(id,name,grade);
+          return Response.ok().build();
+        }else{
+            throw new BadRequestException("GradeBook not present or this is not a primary server");
+        }
+    } 
+    
+    @POST
+    @Path("/gradebook/{id}/student")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response copyStudent(@PathParam("id") long id,Student student) throws IOException{
+         if(student==null || "".equalsIgnoreCase(student.getName())){
+            throw new BadRequestException();
+        }
+        GradeBook gradePresent = gradeBookDb.getGradeBookOnlyVisible(id);
+       if(gradePresent != null ){
+          gradeBookDb.copyStudent(id, student);
+           return Response.status(javax.ws.rs.core.Response.Status.CREATED).build();
+        }else{
+           throw new BadRequestException("there is no GradeBook with the given id");  
+        }
     }
     
     @DELETE
     @Path("/gradebook/{id}/student/{name}")
-    public Response deleteStudent(@PathParam("id") long id,@PathParam("name") String name){
+    public Response deleteStudent(@PathParam("id") long id,@PathParam("name") String name) throws IOException{
         GradeBook gradebook = gradeBookDb.filterGradeBookById(id);
         if(gradebook ==null){
+            throw new BadRequestException();  
+        }else{
+            StudentList studentList = gradeBookDb.getAllStudents(id);
+            Student namePresent = gradeBookDb.filterStudent(studentList,name);
+            if(namePresent == null){
+                throw new BadRequestException();  
+            }
+            else{
+                gradeBookDb.deleteAllSecondaryStudent(gradebook,namePresent);
+                studentList.getStudent().remove(namePresent);
+                return Response.ok().build();   
+            }     
+        }   
+    }
+    
+    
+    @DELETE
+    @Path("/secondary/{id}/student/{name}")
+    public Response deleteSecondaryStudent(@PathParam("id") long id,@PathParam("name") String name) throws IOException{
+        GradeBook gradebook = gradeBookDb.filterGradeBookById(id);
+        if(gradebook ==null || !gradeBookDb.isSecondary(gradebook)){
             throw new BadRequestException();  
         }else{
             StudentList studentList = gradeBookDb.getAllStudents(id);
@@ -248,18 +355,7 @@ public class StudentResource {
     }
     
     
-    private Response createOrModifyStudent(long id,String name,String grade){
-        if(id == 0 || grade==null || "".equalsIgnoreCase(grade) || !gradeBookDb.validGrade(grade) ){
-            throw new BadRequestException();
-        }
-        GradeBook gradePresent = gradeBookDb.filterGradeBookById(id);
-       if(gradePresent != null ){
-          gradeBookDb.createStudent(id,name,grade);
-          return Response.ok().build();
-        }else{
-            throw new BadRequestException("Grade Not Present");
-        }
-    }   
+     
     
     @GET
     @Path("/gradebook/{id}/student")
@@ -320,7 +416,7 @@ public class StudentResource {
     @Path("/server/{name}")
     public Response deleteServerByName(@PathParam("name") String name){
         Server server = gradeBookDb.filterServerByName(name);
-        if(server ==null){
+        if(server == null){
           throw new BadRequestException();  
         }
         else{
