@@ -143,12 +143,7 @@ public class StudentResource {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.TEXT_PLAIN)
     public Response createGradeBook(GradeBook gradeBook) throws IOException{
-        if(gradeBook==null){
-        System.out.println("inside null name loop");
-       throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be blank!</xml>").build());
-       }else{
         return copyGradeBook(gradeBook);
-    }
     }
     
     @PUT
@@ -160,7 +155,7 @@ public class StudentResource {
     
     private Response createOrModifyGradeBooks(String name) throws IOException{
          if(name==null || "".equalsIgnoreCase(name)){
-            throw new BadRequestException();
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be blank!</xml>").build());
             }
          if(name.matches("^ .*")) {
         //throw new IllegalArgumentException("Gradebook name cannot start with a space.");
@@ -185,7 +180,7 @@ public class StudentResource {
     
     private Response copyGradeBook(GradeBook gradeBook) throws IOException{ 
         if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
-            throw new BadRequestException();
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be blank!</xml>").build());
         }
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(gradeBook.getGradeTitle());
        if(gradePresent != null ){
