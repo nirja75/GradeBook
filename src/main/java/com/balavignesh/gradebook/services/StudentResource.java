@@ -29,6 +29,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.InternalServerErrorException;
+
 
 /**
  *
@@ -141,7 +143,12 @@ public class StudentResource {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.TEXT_PLAIN)
     public Response createGradeBook(GradeBook gradeBook) throws IOException{
-         return copyGradeBook(gradeBook);
+        if(gradeBook==null){
+        System.out.println("inside null name loop");
+       throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be blank!</xml>").build());
+       }else{
+        return copyGradeBook(gradeBook);
+    }
     }
     
     @PUT
@@ -154,9 +161,11 @@ public class StudentResource {
     private Response createOrModifyGradeBooks(String name) throws IOException{
          if(name==null || "".equalsIgnoreCase(name)){
             throw new BadRequestException();
-        }
+            }
          if(name.matches("^ .*")) {
-        throw new IllegalArgumentException("Gradebook name cannot start with a space.");
+        //throw new IllegalArgumentException("Gradebook name cannot start with a space.");
+        System.out.println("inside whitespace name loop");
+        throw new InternalServerErrorException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("<xml>Gradebook name cannot start with a space!</xml>").build());
     }
          
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(name);
