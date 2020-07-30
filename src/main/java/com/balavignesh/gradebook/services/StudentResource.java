@@ -156,7 +156,7 @@ public class StudentResource {
             throw new BadRequestException();
         }
          if(name.matches("^ .*")) {
-        throw new IllegalArgumentException("Sentence cannot start with a space.");
+        throw new IllegalArgumentException("Gradebook name cannot start with a space.");
     }
          
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(name);
