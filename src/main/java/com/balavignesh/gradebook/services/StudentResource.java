@@ -179,7 +179,7 @@ public class StudentResource {
            
           return Response.status(javax.ws.rs.core.Response.Status.CREATED).entity(gradeId).build();
         }else{
-            throw new BadRequestException("the title already exists in this server or another server");
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name already present. Use new name</xml>").build());
         }
     }
     
