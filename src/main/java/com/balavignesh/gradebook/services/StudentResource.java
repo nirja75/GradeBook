@@ -155,6 +155,10 @@ public class StudentResource {
          if(name==null || "".equalsIgnoreCase(name)){
             throw new BadRequestException();
         }
+         if(name.matches("^ .*")) {
+        throw new IllegalArgumentException("Sentence cannot start with a space.");
+    }
+         
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(name);
        if(gradePresent == null ){
           long gradeId = gradeBookDb.createGradebook(name);
