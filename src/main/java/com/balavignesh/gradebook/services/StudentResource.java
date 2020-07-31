@@ -326,8 +326,9 @@ public class StudentResource {
     @Path("/gradebook/{id}/student/{name}")
     public Response deleteStudent(@PathParam("id") long id,@PathParam("name") String name) throws IOException{
         GradeBook gradebook = gradeBookDb.filterGradeBookById(id);
-        if(gradebook ==null){
-            throw new BadRequestException();  
+        if(gradebook ==null|| !gradeBookDb.isPrimary(gradebook)){
+            throw new BadRequestException(); 
+       
         }else{
             StudentList studentList = gradeBookDb.getAllStudents(id);
             Student namePresent = gradeBookDb.filterStudent(studentList,name);
