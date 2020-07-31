@@ -201,8 +201,14 @@ public class StudentResource {
           throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not Primary on this client!</xml>").build()); 
         }
         else{
+            String ip = gradeBookDb.getMyIP();
             gradeBookDb.deleteAllSecondary(gradeBook);
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
+            gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
+            gradeBookDb.removeStudents(gradeBook);
+            gradeBookDb.pushToAllServers(gradeBook);
+            
+           
             return Response.ok().build();
         }
         
@@ -271,6 +277,7 @@ public class StudentResource {
                     throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server does not have a secondary copy of the GradeBook </xml>").build());  
                 }else{
                     gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
+                    
                     gradeBookDb.removeStudents(gradeBook);
                     gradeBookDb.pushToAllServers(gradeBook);
                     return Response.ok().build();  
