@@ -158,7 +158,6 @@ public class StudentResource {
             throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be blank!</xml>").build());
             }
          if(name.matches("^ .*")) {
-        //throw new IllegalArgumentException("Gradebook name cannot start with a space.");
         System.out.println("inside whitespace name loop");
         throw new InternalServerErrorException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("<xml>Gradebook name cannot start with a space!</xml>").build());
     }
@@ -271,13 +270,12 @@ public class StudentResource {
         else{
             String ip = gradeBookDb.getMyIP();
             if(!gradeBookDb.isSecondary(gradeBook)){
-                throw new BadRequestException("the server does not have a secondary copy of the GradeBook");  
+                throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server does not have a secondary copy of the GradeBook </xml>").build()); 
             }else{           
                 if(gradeBookDb.isPrimary(gradeBook)){
                     throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server does not have a secondary copy of the GradeBook </xml>").build());  
                 }else{
                     gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
-                    
                     gradeBookDb.removeStudents(gradeBook);
                     gradeBookDb.pushToAllServers(gradeBook);
                     return Response.ok().build();  
@@ -301,7 +299,7 @@ public class StudentResource {
     
      private Response createOrModifyStudent(long id,String name,String grade) throws IOException{
         if(id == 0 || grade==null || "".equalsIgnoreCase(grade) || !gradeBookDb.validGrade(grade) ){
-            throw new BadRequestException();
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> Grade cannot be blank or ID cannot be zerp! </xml>").build());
         }
         GradeBook gradePresent = gradeBookDb.filterGradeBookById(id);
        if(gradePresent != null && gradeBookDb.isPrimary(gradePresent)){
@@ -318,7 +316,7 @@ public class StudentResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response copyStudent(@PathParam("id") long id,Student student) throws IOException{
          if(student==null || "".equalsIgnoreCase(student.getName())){
-            throw new BadRequestException();
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> student cannot be blank or empty! </xml>").build());
         }
         GradeBook gradePresent = gradeBookDb.getGradeBookOnlyVisible(id);
        if(gradePresent != null ){
@@ -334,13 +332,12 @@ public class StudentResource {
     public Response deleteStudent(@PathParam("id") long id,@PathParam("name") String name) throws IOException{
         GradeBook gradebook = gradeBookDb.filterGradeBookById(id);
         if(gradebook ==null|| !gradeBookDb.isPrimary(gradebook)){
-            throw new BadRequestException(); 
-       
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> Gradebook is null or not Primary </xml>").build());
         }else{
             StudentList studentList = gradeBookDb.getAllStudents(id);
             Student namePresent = gradeBookDb.filterStudent(studentList,name);
             if(namePresent == null){
-                throw new BadRequestException();  
+               throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> Student name is empty </xml>").build());
             }
             else{
                 gradeBookDb.deleteAllSecondaryStudent(gradebook,namePresent);
@@ -356,12 +353,12 @@ public class StudentResource {
     public Response deleteSecondaryStudent(@PathParam("id") long id,@PathParam("name") String name) throws IOException{
         GradeBook gradebook = gradeBookDb.filterGradeBookById(id);
         if(gradebook ==null || !gradeBookDb.isSecondary(gradebook)){
-            throw new BadRequestException();  
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> Gradebook is null or not Secondary </xml>").build()); 
         }else{
             StudentList studentList = gradeBookDb.getAllStudents(id);
             Student namePresent = gradeBookDb.filterStudent(studentList,name);
             if(namePresent == null){
-                throw new BadRequestException();  
+                throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> Student name is empty </xml>").build());  
             }
             else{
                 studentList.getStudent().remove(namePresent);
