@@ -180,7 +180,7 @@ public class StudentResource {
     
     private Response copyGradeBook(GradeBook gradeBook) throws IOException{ 
         if(gradeBook==null || "".equalsIgnoreCase(gradeBook.getGradeTitle())){
-            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be blank!</xml>").build());
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook name cannot be empty!</xml>").build());
         }
         GradeBook gradePresent = gradeBookDb.filterGradeBookByName(gradeBook.getGradeTitle());
        if(gradePresent != null ){
@@ -237,14 +237,14 @@ public class StudentResource {
     private Response createOrModifySecondary(long id) throws IOException{
         GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);      
         if(gradeBook ==null){
-            throw new BadRequestException("there is no GradeBook with the given id");  
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> there is no GradeBook with the given id </xml>").build()); 
         }else{
             String ip = gradeBookDb.getMyIP();
             if(gradeBookDb.isSecondary(gradeBook)){
-                throw new BadRequestException("the server already has a secondary copy of the GradeBook");  
+                throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server already has a secondary copy of the GradeBook </xml>").build()); 
             }else{           
                 if(gradeBookDb.isPrimary(gradeBook)){
-                    throw new BadRequestException("the server is the primary server for the GradeBook");  
+                    throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server is the primary server for the GradeBook </xml>").build());  
                 }else{
                    gradeBook.getServerList().getServer().add(gradeBookDb.filterServerByIp(ip));
                    gradeBookDb.populateStudents(gradeBook);
@@ -260,7 +260,7 @@ public class StudentResource {
     public Response deleteSecondarybyId(@PathParam("id") long id) throws IOException{
         GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
         if(gradeBook ==null){
-          throw new BadRequestException("there is no GradeBook with the given id");  
+          throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> there is no GradeBook with the given id </xml>").build()); 
         }
         else{
             String ip = gradeBookDb.getMyIP();
@@ -268,7 +268,7 @@ public class StudentResource {
                 throw new BadRequestException("the server does not have a secondary copy of the GradeBook");  
             }else{           
                 if(gradeBookDb.isPrimary(gradeBook)){
-                    throw new BadRequestException("the server is the primary server for the GradeBook");  
+                    throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server does not have a secondary copy of the GradeBook </xml>").build());  
                 }else{
                     gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
                     gradeBookDb.removeStudents(gradeBook);
@@ -301,7 +301,7 @@ public class StudentResource {
           gradeBookDb.createStudent(id,name,grade);
           return Response.ok().build();
         }else{
-            throw new BadRequestException("GradeBook not present or this is not a primary server");
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> GradeBook not present or this is not a primary server </xml>").build());
         }
     } 
     
@@ -318,7 +318,7 @@ public class StudentResource {
           gradeBookDb.copyStudent(id, student);
            return Response.status(javax.ws.rs.core.Response.Status.CREATED).build();
         }else{
-           throw new BadRequestException("there is no GradeBook with the given id");  
+           throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> there is no GradeBook with the given id </xml>").build());  
         }
     }
     
@@ -361,9 +361,6 @@ public class StudentResource {
             }     
         }   
     }
-    
-    
-     
     
     @GET
     @Path("/gradebook/{id}/student")
@@ -432,99 +429,4 @@ public class StudentResource {
             return Response.ok().build();
         }  
     }
-    
-    /*
-    
-    
-    private StudentList studentList = new StudentList();
-    
-     
-    
-    
-    @POST
-    @Path("{name}/grade/{grade}")
-    public Response addStudent(@PathParam("name") String name,@PathParam("grade") String grade){
-        return addOrReplaceStudent(name,grade);
-    }
-    
-    @PUT
-    @Path("{name}/grade/{grade}")
-    public Response modifyStudent(@PathParam("name") String name,@PathParam("grade") String grade){
-        return addOrReplaceStudent(name,grade);
-    }
-    
-    @POST
-    @Path("{name}/grade")
-    public Response addEmptyStudent(@PathParam("name") String name){
-        return addOrReplaceStudent(name,"");
-    }
-    
-    @PUT
-    @Path("{name}/grade")
-    public Response modifyEmptyStudent(@PathParam("name") String name){
-        return addOrReplaceStudent(name,"");
-    }
-    
-    private Response addOrReplaceStudent(String name,String grade){
-        
-        if(grade==null || "".equalsIgnoreCase(grade) || !validGrade(grade)){
-            throw new BadRequestException();
-        }
-        
-        Student studentSaved = filterStudent(studentList,name);
-        
-        if(studentSaved == null ){
-           Student student = new Student();
-           student.setName(name);
-            student.setGrade(grade);
-            studentList.getStudent().add(student);
-        }else{
-            studentSaved.setGrade(grade);
-        }
-        
-        return Response.ok().build();
-    }
-    
-    @GET
-    @Produces(MediaType.TEXT_XML+";charset=utf-8")
-    public StudentList getStudents(){
-        return studentList;
-    }
-    
-    @GET
-    @Path("{name}")
-    @Produces(MediaType.TEXT_XML+";charset=utf-8")
-    public Student getStudent(@PathParam("name") String name){
-        Student student = filterStudent(studentList,name);
-        if(student==null){
-            throw new NotFoundException();
-        }
-        return student;
-    }
-    
-    @DELETE
-    @Path("{name}")
-    public Response deleteStudent(@PathParam("name") String name){
-        Student student = filterStudent(studentList,name);
-        if(student==null){
-            throw new NotFoundException();
-        }else{
-            studentList.getStudent().remove(student);
-        }
-        return Response.ok().build();
-    }
-
-    private Student filterStudent(StudentList studentList, String name) {
-        if(name == null || name.trim().length()==0 || studentList.getStudent()==null || studentList.getStudent().size()==0){
-            return null;
-        }
-        return studentList.getStudent().stream().filter(student->name.equalsIgnoreCase(student.getName()))
-                .findFirst().orElse(null);
-    }
-
-    private boolean validGrade(String grade) {
-        ArrayList<String> grades = new ArrayList<String>(
-                Arrays.asList("A+","A-","B+","B-","C+","C-","D+","D-","A","B","C","D","E","F","I","W","Z"));
-        return grades.stream().filter(gr->gr.equalsIgnoreCase(grade)).count()==1;
-    }*/
 }
