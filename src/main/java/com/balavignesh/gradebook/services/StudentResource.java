@@ -198,7 +198,7 @@ public class StudentResource {
     public Response deleteGradebookbyId(@PathParam("id") long id) throws IOException{
         GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
         if(gradeBook ==null || !gradeBookDb.isPrimary(gradeBook)){
-          throw new BadRequestException();  
+          throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not Primary on this client!</xml>").build()); 
         }
         else{
             gradeBookDb.deleteAllSecondary(gradeBook);
@@ -213,7 +213,7 @@ public class StudentResource {
     public Response deleteGradebookCopybyId(@PathParam("id") long id) throws IOException{
         GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
         if(gradeBook ==null){
-          throw new BadRequestException();  
+          throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not present!</xml>").build()); 
         }
         else{
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
