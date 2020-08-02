@@ -347,7 +347,7 @@ public class GradeBookDB {
     }
 
     public void deleteAllSecondary(GradeBook gradeBook) throws IOException {
-        if(gradeBook!=null && isPrimary(gradeBook)){
+        if(gradeBook!=null && serverList.getServer().size()>1 && isPrimary(gradeBook)){
             List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
             servers.parallelStream().forEach(server->{
                 sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);
