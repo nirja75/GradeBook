@@ -204,6 +204,7 @@ public class StudentResource {
             
             //gradeBookDb.removeStudents(gradeBook);
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
+            gradeBookDb.removeStudents(gradeBook);
             //gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
             gradeBookDb.deleteAllSecondary(gradeBook);
             //gradeBookDb.pushToAllServers(gradeBook);
