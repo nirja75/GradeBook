@@ -106,7 +106,7 @@ public class GradeBookDB {
     } 
     
     public Student filterStudent(StudentList studentList, String name) {
-        if(name == null || name.trim().length()==0 || studentList.getStudent()==null || studentList.getStudent().isEmpty()){
+        if(name == null || name.trim().length()==0 || studentList==null || studentList.getStudent()==null || studentList.getStudent().isEmpty()){
             return null;
         }
         return studentList.getStudent().stream().filter(student->name.equalsIgnoreCase(student.getName()))
