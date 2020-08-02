@@ -47,7 +47,7 @@ public class GradeBookDB {
         createServer("ashok","34.68.29.81","8080","GradeBook");
         createServer("manasa","104.197.5.217","8080","GradeBook");
         createServer("neeraja","35.202.183.42","8080","GradeBook");
-        
+              
     }
     
     public void clearall(){
@@ -90,7 +90,7 @@ public class GradeBookDB {
     }
      
     public GradeBook filterGradeBookByName(String name) {
-        if(name == null || name.trim().length()==0 || gradeBookList.getGradebook()==null || gradeBookList.getGradebook().size()==0){
+        if(name == null || name.trim().length()==0 || gradeBookList.getGradebook()==null || gradeBookList.getGradebook().isEmpty()){
             return null;
         }
         return gradeBookList.getGradebook().stream().filter(student->name.equalsIgnoreCase(student.getGradeTitle()))
@@ -98,7 +98,7 @@ public class GradeBookDB {
     } 
     
     public GradeBook filterGradeBookById(long id) {
-        if(id == 0 || gradeBookList.getGradebook()==null || gradeBookList.getGradebook().size()==0){
+        if(id == 0 || gradeBookList.getGradebook()==null || gradeBookList.getGradebook().isEmpty()){
             return null;
         }
         return gradeBookList.getGradebook().stream().filter(student->id == student.getGradeId())
@@ -106,7 +106,7 @@ public class GradeBookDB {
     } 
     
     public Student filterStudent(StudentList studentList, String name) {
-        if(name == null || name.trim().length()==0 || studentList.getStudent()==null || studentList.getStudent().size()==0){
+        if(name == null || name.trim().length()==0 || studentList.getStudent()==null || studentList.getStudent().isEmpty()){
             return null;
         }
         return studentList.getStudent().stream().filter(student->name.equalsIgnoreCase(student.getName()))
@@ -114,7 +114,7 @@ public class GradeBookDB {
     }
     
      public Server filterServerByName(String name) {
-        if(name == null || name.trim().length()==0 || serverList.getServer()==null || serverList.getServer().size()==0){
+        if(name == null || name.trim().length()==0 || serverList.getServer()==null || serverList.getServer().isEmpty()){
             return null;
         }
         return serverList.getServer().stream().filter(student->name.equalsIgnoreCase(student.getName()))
@@ -122,7 +122,7 @@ public class GradeBookDB {
     } 
      
     public Server filterServerByIp(String ip) {
-        if(ip == null || ip.trim().length()==0 || serverList.getServer()==null || serverList.getServer().size()==0){
+        if(ip == null || ip.trim().length()==0 || serverList.getServer()==null || serverList.getServer().isEmpty()){
             return null;
         }
         return serverList.getServer().stream().filter(student->
@@ -131,7 +131,7 @@ public class GradeBookDB {
     } 
     
      public Server filterServerByIp(List<Server> servers, String ip) {
-        if(ip == null || ip.trim().length()==0 || servers==null || servers.size()==0){
+        if(ip == null || ip.trim().length()==0 || servers==null || servers.isEmpty()){
             return null;
         }
         return servers.stream().filter(student->
@@ -154,7 +154,7 @@ public class GradeBookDB {
     }
     
     public List<Server> filterServerByNotIp(List<Server> list ,String ip) {
-        if(ip == null || ip.trim().length()==0 || list==null || list.size()==0){
+        if(ip == null || ip.trim().length()==0 || list==null || list.isEmpty()){
             return null;
         }
         return list.stream().filter(student-> !ip.equalsIgnoreCase(student.getIp()))
@@ -181,7 +181,7 @@ public class GradeBookDB {
     
     public GradeBook getGradeBookOnlyVisible(long id) throws IOException {
         List<GradeBook> gradeBookLists = getGradeBookListOnlyVisible();
-      if(id == 0 || gradeBookLists==null || gradeBookLists.size()==0){
+      if(id == 0 || gradeBookLists==null || gradeBookLists.isEmpty()){
             return null;
         }
         return gradeBookLists.stream().filter(student->id == student.getGradeId())
@@ -350,7 +350,8 @@ public class GradeBookDB {
         if(gradeBook!=null && serverList.getServer().size()>1 && isPrimary(gradeBook) && !gradeBook.getServerList().getServer().isEmpty()){
             List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
             servers.stream().forEach(server->{
-                sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);
+                System.out.println("deleting copies of secondary gradebook on server: " + server +" : "  + gradeBook.getGradeId());
+                sentMessage(server,"/resources/secondary/"+gradeBook.getGradeId(),"DELETE",null);
             });
         }
     }

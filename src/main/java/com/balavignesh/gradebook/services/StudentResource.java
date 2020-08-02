@@ -200,14 +200,15 @@ public class StudentResource {
           throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not Primary on this client!</xml>").build()); 
         }
         else{
-            String ip = gradeBookDb.getMyIP();
+            System.out.println("inside else of deleting gradebook: " + gradeBook);
+             System.out.println("deleting copies of secondary gradebook on server:: "  + gradeBook.getGradeId());
             gradeBookDb.deleteAllSecondary(gradeBook);
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
-            gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
-            gradeBookDb.removeStudents(gradeBook);
-            gradeBookDb.pushToAllServers(gradeBook);
+            //String ip = gradeBookDb.getMyIP();
+            //gradeBookDb.removeStudents(gradeBook);
+            //gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
+            //gradeBookDb.pushToAllServers(gradeBook);
             
-           
             return Response.ok().build();
         }
         
@@ -221,10 +222,10 @@ public class StudentResource {
           throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not present!</xml>").build()); 
         }
         else{
+            System.out.println("inside deleting gradebookcopy");
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
             return Response.ok().build();
-        }
-        
+        }  
     }
     
     @PUT
