@@ -202,7 +202,7 @@ public class StudentResource {
         }
         else{
             
-            gradeBookDb.removeStudents(gradeBook);
+            //gradeBookDb.removeStudents(gradeBook);
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
             //gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
             gradeBookDb.deleteAllSecondary(gradeBook);
