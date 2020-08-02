@@ -347,11 +347,15 @@ public class GradeBookDB {
     }
 
     public void deleteAllSecondary(GradeBook gradeBook) throws IOException {
-        if(gradeBook!=null && serverList.getServer().size()>1 && isPrimary(gradeBook)){
+        System.out.println("delete all secondary Size:" + gradeBook.getServerList().getServer().size());
+        System.out.println("delete all secondary.check for is primary:" + isPrimary(gradeBook));
+        if(gradeBook.getServerList().getServer().size()>1 && isPrimary(gradeBook)){
+            System.out.println("inside if loop of deleteall secondary");
             List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
             servers.parallelStream().forEach(server->{
-                //sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);
-                sentMessage(server,"/resources/secondary/"+gradeBook.getGradeId(),"DELETE",null);
+               System.out.println("Server loop inside delete all secondary" + server);
+             sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);           
+             //sentMessage(server,"/resources/secondary/"+gradeBook.getGradeId(),"DELETE",null);
             });
         }
     }

@@ -198,18 +198,20 @@ public class StudentResource {
         GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
         //String ip = gradeBookDb.getMyIP();
         if(gradeBook ==null || !gradeBookDb.isPrimary(gradeBook)){
+            System.out.println("delete primary inside if loop");
           throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not Primary on this client!</xml>").build()); 
-        }
-        else{
-            
-            //gradeBookDb.removeStudents(gradeBook);
+        }else if(gradeBookDb.isPrimary(gradeBook) && gradeBook.getServerList().getServer().isEmpty()){
+            System.out.println("delete primary inside else-if loop");
+            gradeBookDb.removeStudents(gradeBook);
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
-            //gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
-            gradeBookDb.deleteAllSecondary(gradeBook);
-            //gradeBookDb.pushToAllServers(gradeBook);
             return Response.ok().build();
-        }
-        
+        }else{ 
+            System.out.println("delete primary inside else loop. Serverlist size:" + gradeBook.getServerList().getServer().size());
+            gradeBookDb.removeStudents(gradeBook);
+            gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
+            gradeBookDb.deleteAllSecondary(gradeBook);
+            }
+        return null;
     }
     
     @DELETE
@@ -274,6 +276,7 @@ public class StudentResource {
                 if(gradeBookDb.isPrimary(gradeBook)){
                     throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml> the server does not have a secondary copy of the GradeBook </xml>").build());  
                 }else{
+                    System.out.println("inside of secondary id delete loop. removing gradebook for" + gradeBook + "on" + gradeBookDb.filterServerByIp(ip));
                     gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
                     gradeBookDb.removeStudents(gradeBook);
                     gradeBookDb.pushToAllServers(gradeBook);
