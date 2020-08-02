@@ -338,12 +338,12 @@ public class GradeBookDB {
              GradeBook gradePresent = getGradeBookOnlyVisible(id);
             if(gradePresent != null && isPrimary(gradePresent)){
                 List<Server> servers = filterServerByNotIp(gradePresent.getServerList().getServer(),getMyIP());
-                servers.stream().forEach(server->{
+                if(servers!=null && servers.size()>0) {
+                    servers.stream().forEach(server->{
                     sentMessage(server,"/resources/gradebook/"+id+"/student","POST",jaxbObjectToXML(student));
                 });
+            }}
             }
-            
-        }
     }
 
     public void deleteAllSecondary(GradeBook gradeBook) throws IOException {
