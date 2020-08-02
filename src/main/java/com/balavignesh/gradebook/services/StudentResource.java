@@ -210,8 +210,8 @@ public class StudentResource {
             gradeBookDb.removeStudents(gradeBook);
             gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
             gradeBookDb.deleteAllSecondary(gradeBook);
+            return Response.ok().build();
             }
-        return null;
     }
     
     @DELETE
