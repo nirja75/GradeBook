@@ -350,7 +350,7 @@ public class GradeBookDB {
         if(gradeBook!=null && serverList.getServer().size()>1 && isPrimary(gradeBook)){
             List<Server> servers = filterServerByNotIp(gradeBook.getServerList().getServer(),getMyIP());
             servers.parallelStream().forEach(server->{
-                sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);
+                //sentMessage(server,"/resources/gradebookcopy/"+gradeBook.getGradeId(),"DELETE",null);
                 sentMessage(server,"/resources/secondary/"+gradeBook.getGradeId(),"DELETE",null);
             });
         }

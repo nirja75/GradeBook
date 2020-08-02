@@ -196,15 +196,16 @@ public class StudentResource {
     @Path("/gradebook/{id}")
     public Response deleteGradebookbyId(@PathParam("id") long id) throws IOException{
         GradeBook gradeBook = gradeBookDb.filterGradeBookById(id);
-        String ip = gradeBookDb.getMyIP();
+        //String ip = gradeBookDb.getMyIP();
         if(gradeBook ==null || !gradeBookDb.isPrimary(gradeBook)){
           throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity("<xml>Gradebook is not Primary on this client!</xml>").build()); 
         }
         else{
-            gradeBookDb.deleteAllSecondary(gradeBook);
-            gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
+            
             gradeBookDb.removeStudents(gradeBook);
-            gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
+            gradeBookDb.getGradeBookList().getGradebook().remove(gradeBook);
+            //gradeBook.getServerList().getServer().remove(gradeBookDb.filterServerByIp(ip));
+            gradeBookDb.deleteAllSecondary(gradeBook);
             //gradeBookDb.pushToAllServers(gradeBook);
             return Response.ok().build();
         }
