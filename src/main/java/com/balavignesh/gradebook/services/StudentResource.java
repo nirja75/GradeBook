@@ -128,8 +128,15 @@ public class StudentResource {
         GradeBookList bookList = new GradeBookList();
         bookList.getGradebook().addAll(gradeBookLists);
         return Response.status(javax.ws.rs.core.Response.Status.OK).entity(bookList).build();
-    }   
-}
+        }   
+    }
+    
+    @GET
+    @Path("/gradebookoriginal")
+    @Produces(MediaType.TEXT_XML+";charset=utf-8")
+    public Response getGradeBookListOriginal() throws IOException{
+       return Response.status(javax.ws.rs.core.Response.Status.OK).entity(gradeBookDb.getGradeBookList()).build();
+    }
        
     @POST
     @Path("/gradebook/{name}")
