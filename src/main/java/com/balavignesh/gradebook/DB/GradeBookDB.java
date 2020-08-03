@@ -362,11 +362,14 @@ public class GradeBookDB {
 
     public void deleteAllSecondaryStudent(GradeBook gradebook,Student student) throws IOException {
         if(student!=null && serverList.getServer().size()>1){
-             if(gradebook != null && isSecondary(gradebook)){
+             if(gradebook != null && isPrimary(gradebook) && gradebook.getServerList()!=null 
+                     && gradebook.getServerList().getServer()!=null && gradebook.getServerList().getServer().size()>0){
                 List<Server> servers = filterServerByNotIp(gradebook.getServerList().getServer(),getMyIP());
+                if(servers!=null && servers.size()>0) {
                 servers.stream().forEach(server->{
                     sentMessage(server,"/resources/secondary/"+gradebook.getGradeId()+"/student/"+student.getName(),"DELETE",null);
                 });
+                }
             }
             
         }
