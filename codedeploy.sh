@@ -14,7 +14,7 @@ echo 'new copy of gradebook copied to docroot'
 
 asadmin deploy --contextroot GradeBook GradeBook-1.0-SNAPSHOT.war
 
-wget http://34.68.29.81:8080/GradeBook/resources/clearall
+wget http://ipaddress:8080/GradeBook/resources/clearall
 
-wget wget http://34.68.29.81:8080/GradeBook/resources/server
+wget wget http://ipaddress:8080/GradeBook/resources/server
 
